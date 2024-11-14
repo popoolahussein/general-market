@@ -1,14 +1,10 @@
+import { env } from '~/env';
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 
 import { db } from "~/server/db";
-import {
-  accounts,
-  sessions,
-  users,
-  verificationTokens,
-} from "~/server/db/schema";
+import { accounts, sessions, users, verificationTokens } from "~/server/db/schema";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -36,9 +32,12 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig = {
+export const authConfig: NextAuthConfig = {
   providers: [
-    GithubProvider,
+    GithubProvider({
+      clientId: env.AUTH_GITHUB_ID,
+      clientSecret: env.AUTH_GITHUB_SECRET,
+    }),
     /**
      * ...add more providers here.
      *
@@ -64,4 +63,6 @@ export const authConfig = {
       },
     }),
   },
-} satisfies NextAuthConfig;
+  secret: env.AUTH_SECRET,
+  debug: env.NODE_ENV === "development", // Enables NextAuth debug logs in development mode
+};
